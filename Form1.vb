@@ -5,6 +5,7 @@
     Private ReadOnly quitButton As New Button()
     Private ReadOnly resultsList As New ListView()
     Private ReadOnly statusLabel As New Label()
+    Private backgroundMusic As System.Media.SoundPlayer
 
     Private Const PoundsPerKilogram As Decimal = 2.20462262185D
 
@@ -23,6 +24,19 @@
     Public Sub New()
         InitializeComponent()
         BuildCalculator()
+        backgroundMusic = New System.Media.SoundPlayer(
+            IO.Path.Combine(Application.StartupPath, "Cring.wav"))
+        AddHandler Me.Load, AddressOf Form1_Load
+        AddHandler Me.FormClosed, AddressOf Form1_FormClosed
+    End Sub
+
+    Private Sub Form1_Load(sender As Object, e As EventArgs)
+        backgroundMusic.PlayLooping()
+    End Sub
+
+    Private Sub Form1_FormClosed(sender As Object, e As FormClosedEventArgs)
+        backgroundMusic.Stop()
+        backgroundMusic.Dispose()
     End Sub
 
     Private Sub BuildCalculator()
