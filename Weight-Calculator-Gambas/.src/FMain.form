@@ -1,0 +1,58 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,64,68)
+  Text = ("Solar System Weight Calculator")
+  Resizable = True
+  Arrangement = Arrange.Vertical
+  Spacing = True
+  Margin = True
+  Padding = 28
+  { lblHeading Label
+    MoveScaled(2,1,60,6)
+    Text = ("Your weight across the solar system")
+    Font = Font["18,Bold"]
+    Alignment = Align.Left
+  }
+  { panEntry HBox
+    MoveScaled(2,8,60,6)
+    Spacing = True
+    { lblWeight Label
+      MoveScaled(0,1,12,4)
+      Text = ("Your weight")
+      Alignment = Align.Right
+    }
+    { txtWeight TextBox
+      MoveScaled(13,1,20,4)
+      Alignment = Align.Right
+      MaxLength = 9
+    }
+    { cmbUnit ComboBox
+      MoveScaled(34,1,8,4)
+      ReadOnly = True
+      List = ["lb", "kg"]
+      Text = ("lb")
+    }
+  }
+  { btnCalculate Button
+    MoveScaled(2,15,60,5)
+    Text = ("Calculate")
+  }
+  { grdResults GridView
+    MoveScaled(2,21,60,36)
+    Expand = True
+    Header = GridView.Horizontal
+    Grid = True
+  }
+  { lblStatus Label
+    MoveScaled(2,58,60,4)
+    Text = ("Enter a whole-number weight to see the results.")
+  }
+  { panFooter HBox
+    MoveScaled(2,63,60,4)
+    { btnQuit Button
+      MoveScaled(44,0,14,4)
+      Text = ("Quit")
+    }
+  }
+}

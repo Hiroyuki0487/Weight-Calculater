@@ -1,0 +1,175 @@
+' Gambas class file
+
+Private Const PoundsPerKilogram As Float = 2.20462262185
+Private PlanetNames As String[]
+Private PlanetGravities As Float[]
+Private $hMusic As Process
+Private $bClosing As Boolean
+Private $bMusicFailed As Boolean
+
+Public Sub Form_Open()
+
+  PlanetNames = ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+  PlanetGravities = [0.378, 0.907, 1.0, 0.377, 2.36, 0.916, 0.889, 1.12, 0.063]
+
+  grdResults.Columns.Count = 3
+  grdResults.Columns[0].Text = "Planet"
+  grdResults.Columns[1].Text = "Weight (lb)"
+  grdResults.Columns[2].Text = "Weight (kg)"
+  grdResults.Columns[0].Width = 180
+  grdResults.Columns[1].Width = 170
+  grdResults.Columns[2].Width = 170
+
+  UpdateResults
+
+  If Exist(Application.Path &/ "Cring.wav") Then
+    StartMusic
+  Else
+    lblStatus.Text = "Music file not found: Cring.wav"
+  End If
+
+End
+
+Public Sub Form_Close()
+
+  $bClosing = True
+  If $hMusic Then $hMusic.Kill
+
+End
+
+Public Sub MusicProcess_Kill()
+
+  If $bClosing Or If $bMusicFailed Then Return
+  StartMusic
+
+End
+
+Public Sub MusicProcess_Error(ErrorText As String)
+
+  $bMusicFailed = True
+  lblStatus.Text = "Music playback failed: " & Trim(ErrorText)
+
+End
+
+Public Sub txtWeight_Change()
+
+  UpdateResults
+
+End
+
+Public Sub cmbUnit_Change()
+
+  UpdateResults
+
+End
+
+Public Sub btnCalculate_Click()
+
+  UpdateResults
+
+  Dim EnteredWeight As Integer
+  Dim WeightText As String
+  WeightText = Trim(CStr(txtWeight.Text))
+  If WeightText = "" Then
+    EnteredWeight = 0
+  Else
+    EnteredWeight = CInt(Val(WeightText))
+  End If
+  If EnteredWeight <= 0 Or If Trim(txtWeight.Text) = "" Then
+    lblStatus.Text = "Enter a whole number greater than zero."
+    lblStatus.Foreground = Color.Red
+    txtWeight.SetFocus
+  End If
+
+End
+
+Public Sub btnQuit_Click()
+
+  Me.Close
+
+End
+
+Public Sub grdResults_Data(Row As Integer, Column As Integer)
+
+  If Row < 0 Or If Row >= grdResults.Rows.Count Then Return
+
+  Dim WeightInPounds As Float
+  Dim WeightInKilograms As Float
+  Dim EnteredWeight As Integer
+  Dim WeightText As String
+  Dim InputIsPounds As Boolean
+
+  WeightText = Trim(CStr(txtWeight.Text))
+  If WeightText = "" Then
+    EnteredWeight = 0
+  Else
+    EnteredWeight = CInt(Val(WeightText))
+  End If
+  InputIsPounds = cmbUnit.Text = "lb"
+
+  If InputIsPounds Then
+    WeightInPounds = EnteredWeight * PlanetGravities[Row]
+    WeightInKilograms = WeightInPounds / PoundsPerKilogram
+  Else
+    WeightInKilograms = EnteredWeight * PlanetGravities[Row]
+    WeightInPounds = WeightInKilograms * PoundsPerKilogram
+  End If
+
+  Select Column
+    Case 0
+      grdResults.Data.Text = PlanetNames[Row]
+    Case 1
+      If InputIsPounds Then
+        grdResults.Data.Text = Format(CInt(Round(WeightInPounds)), "###,##0")
+      Else
+        grdResults.Data.Text = Format(CInt(Round(WeightInKilograms)), "###,##0")
+      End If
+    Case 2
+      If InputIsPounds Then
+        grdResults.Data.Text = Format(CInt(Round(WeightInKilograms)), "###,##0")
+      Else
+        grdResults.Data.Text = Format(CInt(Round(WeightInPounds)), "###,##0")
+      End If
+  End Select
+
+End
+
+Private Sub UpdateResults()
+
+  Dim EnteredWeight As Integer
+  Dim WeightText As String
+  WeightText = Trim(CStr(txtWeight.Text))
+  If WeightText = "" Then
+    EnteredWeight = 0
+  Else
+    EnteredWeight = CInt(Val(WeightText))
+  End If
+
+  If EnteredWeight <= 0 Or If Trim(txtWeight.Text) = "" Then
+    grdResults.Rows.Count = 0
+    lblStatus.Foreground = Color.TextForeground
+    lblStatus.Text = "Enter a whole-number weight to see the results."
+    Return
+  End If
+
+  Dim InputIsPounds As Boolean
+  InputIsPounds = cmbUnit.Text = "lb"
+
+  grdResults.Columns[1].Text = IIf(InputIsPounds, "Weight (lb)", "Weight (kg)")
+  grdResults.Columns[2].Text = IIf(InputIsPounds, "Weight (kg)", "Weight (lb)")
+  grdResults.Rows.Count = PlanetNames.Count
+
+  lblStatus.Foreground = Color.TextForeground
+  lblStatus.Text = "Input: " & cmbUnit.Text & ". Results show rounded whole-number pounds and kilograms."
+
+End
+
+Private Sub StartMusic()
+
+  Try $hMusic = Exec ["aplay", "-q", Application.Path &/ "Cring.wav"] For Input Output As "MusicProcess"
+  If Error Then
+    $bMusicFailed = True
+    lblStatus.Text = "Could not start ALSA music playback: " & Error.Text
+  End If
+
+End
